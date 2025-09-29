@@ -240,7 +240,7 @@ export default {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "output.dxf");
+        link.setAttribute("download", "output.dwg");
         document.body.appendChild(link);
         link.click();
         link.remove();

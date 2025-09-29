@@ -11,6 +11,10 @@ export default defineNuxtConfig({
     registerType: "autoUpdate",
     strategies: "generateSW",
     includeAssets: ["logo.png"],
+    workbox: {
+      importScripts: [],
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
     manifest: {
       name: "Bappy",
       short_name: "Bappy",

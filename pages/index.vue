@@ -1,4 +1,7 @@
 <template>
+  <Head>
+    <Title>Bappy</Title>
+  </Head>
   <form
     @submit.prevent="submit"
     class="flex flex-col md:flex-row justify-center gap-2 py-2 px-2"

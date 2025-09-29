@@ -21,9 +21,11 @@
       Bappy Download kor
     </button>
   </form>
-  <div class="container mx-auto flex flex-col gap-2 px-2">
+  <div class="container mx-auto flex flex-col gap-5 px-2">
     <div v-for="(group, index) in coordinates" :key="index">
-      {{ group[0]?.name }}
+      <p class="text-3xl font-bold text-center">
+        {{ group[0]?.name }}
+      </p>
       <div class="flex overflow-x-auto">
         <div
           v-for="(point, index) in group"

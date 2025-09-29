@@ -1,7 +1,7 @@
 <template>
   <form
     @submit.prevent="submit"
-    class="flex flex-col md:flex-row justify-center gap-2 py-2"
+    class="flex flex-col md:flex-row justify-center gap-2 py-2 px-2"
   >
     <input
       type="file"
@@ -16,7 +16,7 @@
       Bappy Download kor
     </button>
   </form>
-  <div class="container mx-auto flex flex-col gap-2">
+  <div class="container mx-auto flex flex-col gap-2 px-2">
     <div v-for="(group, index) in coordinates" :key="index">
       {{ group[0]?.name }}
       <div class="flex overflow-x-auto">

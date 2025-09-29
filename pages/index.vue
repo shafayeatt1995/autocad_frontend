@@ -14,7 +14,7 @@
     />
     <button
       type="submit"
-      class="border px-5 bg-slate-900 text-white rounded-lg py-1"
+      class="border px-5 bg-slate-900 text-white rounded-lg py-1 flex gap-2 items-center disabled:opacity-50"
       :disabled="loading"
     >
       <Loader2Icon v-if="loading" class="animate-spin" />

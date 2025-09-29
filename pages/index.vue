@@ -15,7 +15,9 @@
     <button
       type="submit"
       class="border px-5 bg-slate-900 text-white rounded-lg py-1"
+      :disabled="loading"
     >
+      <Loader2Icon v-if="loading" class="animate-spin" />
       Bappy Download kor
     </button>
   </form>
@@ -36,12 +38,18 @@
   </div>
 </template>
 <script>
+import { Loader2Icon } from "lucide-vue-next";
+
 export default {
   name: "AnikPage",
+  components: {
+    Loader2Icon,
+  },
   data() {
     return {
       file: null,
       coordinates: [],
+      loading: false,
       layerMap: {
         BC: { layerName: "CANAL", color: 130 },
         BD: { layerName: "DITCH", color: 130 },
@@ -211,6 +219,7 @@ export default {
           alert("Please select a file first!");
           return;
         }
+        this.loading = true;
         const { apiUrl } = useUtils();
         const response = await fetch(`${apiUrl}/generate-dxf`, {
           method: "POST",
@@ -235,6 +244,8 @@ export default {
         link.remove();
       } catch (error) {
         console.error("Error submitting file:", error);
+      } finally {
+        this.loading = false;
       }
     },
   },

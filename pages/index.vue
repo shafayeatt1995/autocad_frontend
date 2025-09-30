@@ -8,7 +8,7 @@
   >
     <input
       type="file"
-      accept=".txt"
+      accept=".csv"
       @change="handleFile"
       class="border py-1 rounded-lg px-2"
     />
@@ -136,10 +136,50 @@ export default {
       try {
         this.file = event.target.files[0];
         this.fileName = this.file.name.split(".")[0];
-        this.parseFile();
+        // this.parseFile();
+        this.parseCSV();
       } catch (err) {
         console.error(err);
       }
+    },
+    parseCSV() {
+      if (!this.file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const text = e.target.result;
+        let lines = text.split("\n").filter((line) => line.trim() !== "");
+
+        console.log(lines);
+
+        this.coordinates = lines
+          .slice(1)
+          .map((line) => {
+            let [sn, xStr, yStr, zStr, name] = line
+              .split(",")
+              .map((v) => v.trim());
+            const x = parseFloat(xStr);
+            const y = parseFloat(yStr);
+            const z = parseFloat(zStr);
+
+            if (isNaN(x) || isNaN(y) || isNaN(z)) return null;
+            return { sn, x, y, z, name, ...this.parseName(name) };
+          })
+          .filter(Boolean)
+          .reduce((acc, point) => {
+            console.log(point);
+            const parts = [point?.id, point?.layerCode, point?.floor].filter(
+              Boolean
+            );
+            const groupKey = parts.join("");
+            if (!acc[groupKey]) acc[groupKey] = [];
+            acc[groupKey].push(point);
+            return acc;
+          }, {});
+      };
+
+      reader.readAsText(this.file);
     },
     parseName(name) {
       const clean = name.split("-")[0];
@@ -160,7 +200,7 @@ export default {
       const layerInfo =
         layerCode && this.layerMap[layerCode]
           ? this.layerMap[layerCode]
-          : { layerName: "NEW_LAYER", color: 8 };
+          : { layerName: "NEW_LAYER", color: 8, layerCode };
 
       return {
         id,

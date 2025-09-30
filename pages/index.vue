@@ -51,6 +51,7 @@ export default {
     return {
       file: null,
       coordinates: [],
+      fileName: "",
       loading: false,
       layerMap: {
         BC: { layerName: "CANAL", color: 130 },
@@ -132,8 +133,13 @@ export default {
   },
   methods: {
     handleFile(event) {
-      this.file = event.target.files[0];
-      this.parseFile();
+      try {
+        this.file = event.target.files[0];
+        this.fileName = this.file.name.split(".")[0];
+        this.parseFile();
+      } catch (err) {
+        console.error(err);
+      }
     },
     parseName(name) {
       const clean = name.split("-")[0];
@@ -200,7 +206,12 @@ export default {
 
             const newX = parseFloat(xStr);
 
-            return { ...item, x: newX, ...this.parseName(item.name) };
+            return {
+              ...item,
+              x: newX,
+              ...this.parseName(item.name),
+              sn: i + 1,
+            };
           })
           .reduce((acc, point) => {
             const parts = [point.id, point.layerCode, point.floor].filter(
@@ -240,7 +251,7 @@ export default {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "output.dxf");
+        link.setAttribute("download", `${this.fileName}.dxf`);
         document.body.appendChild(link);
         link.click();
         link.remove();

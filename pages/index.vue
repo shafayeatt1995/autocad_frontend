@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>Bappy</Title>
+    <Title>Dxf Generator</Title>
   </Head>
   <form
     @submit.prevent="submit"
@@ -18,7 +18,7 @@
       :disabled="loading"
     >
       <Loader2Icon v-if="loading" class="animate-spin" />
-      Bappy Download kor
+      Generate Dxf
     </button>
   </form>
   <div class="container mx-auto flex flex-col gap-5 px-2">

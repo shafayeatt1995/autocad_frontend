@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  ArrowDownToLineIcon,
   CloudUploadIcon,
   Loader2Icon,
+  SheetIcon,
   TextAlignJustifyIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -387,6 +389,23 @@ export default function Home() {
     }
   };
 
+  const downloadExcel = async () => {
+    try {
+      const path = "/demo.xlsx";
+      const response = await fetch(path);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `demo.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error submitting file:", error);
+    }
+  };
+
   return (
     <>
       <div className="border-b">
@@ -419,7 +438,7 @@ export default function Home() {
       </div>
       <div className="flex w-full overflow-x-hidden h-[calc(100vh-48px)]">
         <div
-          className={`w-full h-full bg-white md:w-80 fixed lg:relative top-14 lg:top-0 z-10 transition-all duration-300 ${
+          className={`w-4/5 h-full bg-white md:w-80 fixed lg:relative top-14 lg:top-0 z-10 transition-all duration-300 ${
             drawer ? "left-0" : "-left-full lg:left-0"
           }`}
         >
@@ -446,10 +465,23 @@ export default function Home() {
                 </p>
               )}
             </label>
-            <div className="flex gap-2 items-center">
-              <Button type="submit" disabled={loading} className="flex-1 mt-2">
-                {loading && <Loader2Icon className="animate-spin" />}
+            <div className="flex flex-col gap-2 mt-3">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : (
+                  <ArrowDownToLineIcon />
+                )}
                 Download Dxf
+              </Button>
+              <Button
+                type="button"
+                disabled={loading}
+                className="flex-1"
+                onClick={() => downloadExcel()}
+              >
+                <SheetIcon />
+                Download Excel
               </Button>
             </div>
           </form>

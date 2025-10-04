@@ -385,7 +385,6 @@ export default function Home() {
         alert("Please select a file first!");
         return;
       }
-      setLoading(true);
       const response = await fetch(`${apiUrl}/preview-dxf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -401,8 +400,6 @@ export default function Home() {
       setOpenAccordion((prev) => [...new Set([...prev, "layers"])]);
     } catch (error) {
       console.error("Error submitting file:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -1,10 +1,18 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
+import {
+  CloudUploadIcon,
+  Loader2Icon,
+  TextAlignJustifyIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import { Button } from "../components/ui/button";
-import { apiUrl } from "../lib/utils";
+import { Button } from "@/components/ui/button";
+import { apiUrl } from "@/lib/utils";
+import Image from "next/image";
+import eventBus from "@/lib/eventBus";
+import Viewer from "@/components/viewer";
+import { setState, useStore } from "@/lib/state";
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -120,6 +128,7 @@ export default function Home() {
     "DT",
     "ST",
   ];
+  const drawer = useStore((s) => s.drawer);
 
   useEffect(() => {
     if (file) parseFile();
@@ -137,55 +146,6 @@ export default function Home() {
     }
   };
 
-  // const parseFile = () => {
-  //   try {
-  //     if (!file) return;
-
-  //     const reader = new FileReader();
-
-  //     reader.onload = (e) => {
-  //       const text = e.target.result;
-  //       let lines = text.split("\n").filter((line) => line.trim() !== "");
-
-  //       const group = lines
-  //         .map((line) => {
-  //           let [sn, xStr, yStr, zStr, name] = line
-  //             .split(",")
-  //             .map((v) => v.trim());
-  //           const x = parseFloat(xStr);
-  //           const y = parseFloat(yStr);
-  //           const z = parseFloat(zStr);
-
-  //           if (isNaN(x) || isNaN(y) || isNaN(z)) return null;
-  //           return { sn, x, y, z, name, ...parseName(name) };
-  //         })
-  //         .filter(Boolean)
-  //         .reduce((acc, point) => {
-  //           const parts = [point?.id, point?.layerCode, point?.floor].filter(
-  //             Boolean
-  //           );
-  //           const groupKey = parts.join("");
-  //           if (!acc[groupKey]) acc[groupKey] = [];
-  //           acc[groupKey].push(point);
-  //           return acc;
-  //         }, {});
-  //       setCoordinates(
-  //         Object.entries(group).map(([key, points]) => {
-  //           // trigger from here
-  //           if (!points[0]?.layerColor) {
-  //             const layerColor = getColor();
-  //             return createPoint(points.map((pt) => ({ ...pt, layerColor })));
-  //           }
-  //           return createPoint(points);
-  //         })
-  //       );
-  //     };
-
-  //     reader.readAsText(file);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
   const parseFile = () => {
     try {
       if (!file) return;
@@ -200,6 +160,10 @@ export default function Home() {
           processLines(lines);
         };
         reader.readAsText(file);
+      } else if (extension === "dxf") {
+        eventBus.emit("processingLoading", true);
+        const blob = new Blob([file], { type: "application/octet-stream" });
+        eventBus.emit("dxfFile", blob);
       } else {
         reader.onload = (e) => {
           const data = new Uint8Array(e.target.result);
@@ -211,12 +175,16 @@ export default function Home() {
         };
         reader.readAsArrayBuffer(file);
       }
+      return true;
     } catch (err) {
       console.error(err);
+      return false;
     }
   };
 
   const processLines = (lines) => {
+    eventBus.emit("processingLoading", true);
+
     const group = lines
       .slice(1)
       .map((line) => {
@@ -239,15 +207,15 @@ export default function Home() {
         return acc;
       }, {});
 
-    setCoordinates(
-      Object.entries(group).map(([key, points]) => {
-        if (!points[0]?.layerColor) {
-          const layerColor = getColor();
-          return createPoint(points.map((pt) => ({ ...pt, layerColor })));
-        }
-        return createPoint(points);
-      })
-    );
+    const coordinate = Object.entries(group).map(([key, points]) => {
+      if (!points[0]?.layerColor) {
+        const layerColor = getColor();
+        return createPoint(points.map((pt) => ({ ...pt, layerColor })));
+      }
+      return createPoint(points);
+    });
+    setCoordinates(coordinate);
+    fetchDXF(coordinate);
   };
 
   // Step-1
@@ -369,9 +337,7 @@ export default function Home() {
       setLoading(true);
       const response = await fetch(`${apiUrl}/generate-dxf`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(coordinates),
       });
 
@@ -379,8 +345,8 @@ export default function Home() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const blob = await response.blob(); // raw DXF file as Blob
-
+      const blob = await response.blob();
+      eventBus.emit("dxfFile", blob);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -395,24 +361,104 @@ export default function Home() {
     }
   };
 
+  const fetchDXF = async (coords) => {
+    try {
+      if (!file) {
+        alert("Please select a file first!");
+        return;
+      }
+      setLoading(true);
+      const response = await fetch(`${apiUrl}/preview-dxf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(coords),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      eventBus.emit("dxfFile", blob);
+    } catch (error) {
+      console.error("Error submitting file:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <form
-        onSubmit={(e) => submit(e)}
-        className="flex flex-col md:flex-row justify-center gap-2 py-2 px-2"
-      >
-        <input
-          type="file"
-          accept=".csv, .xlsx, .xls"
-          onChange={(e) => handleFile(e)}
-          className="border py-1 rounded-lg px-2"
-        />
-        <Button type="submit" disabled={loading}>
-          {loading && <Loader2Icon className="animate-spin" />}
-          Generate Dxf
-        </Button>
-      </form>
-      <div className="container mx-auto flex flex-col gap-5 px-2">
+      <div className="border-b">
+        <div className="container mx-auto px-2 lg:px-0">
+          <div className="h-14 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10">
+                <Image
+                  src="/logo.png"
+                  alt="logo"
+                  className="size-full object-contain"
+                  width={40}
+                  height={40}
+                />
+              </div>
+              <h1 className="text-lg md:text-2xl font-bold">DXF Generator</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button className="hidden lg:block">Login</Button>
+              <Button
+                variant="outline"
+                className="lg:hidden"
+                onClick={() => setState({ drawer: !drawer })}
+              >
+                <TextAlignJustifyIcon />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex w-full overflow-x-hidden h-[calc(100vh-48px)]">
+        <div
+          className={`w-full h-full bg-white md:w-80 fixed lg:relative top-14 lg:top-0 z-10 transition-all duration-300 ${
+            drawer ? "left-0" : "-left-full lg:left-0"
+          }`}
+        >
+          <form onSubmit={(e) => submit(e)} className="p-2">
+            <label
+              htmlFor="file"
+              className="text-slate-700 font-semibold rounded-lg flex flex-col items-center justify-center cursor-pointer border-2 border-dashed py-5"
+            >
+              <CloudUploadIcon size={48} className="mb-3 " />
+              Upload file
+              <input
+                id="file"
+                type="file"
+                accept=".csv, .xlsx, .xls, .dxf"
+                onChange={(e) => handleFile(e)}
+                className="hidden"
+              />
+              <p className="text-xs font-medium mt-2">
+                CSV, XLS, XLSX, DXF are Allowed.
+              </p>
+              {file?.name && (
+                <p className="text-xs font-medium mt-2">
+                  selected: {file.name}
+                </p>
+              )}
+            </label>
+            <div className="flex gap-2 items-center">
+              <Button type="submit" disabled={loading} className="flex-1 mt-2">
+                {loading && <Loader2Icon className="animate-spin" />}
+                Download Dxf
+              </Button>
+            </div>
+          </form>
+        </div>
+        <div className="flex-1 h-full">
+          <Viewer />
+        </div>
+      </div>
+      {/* <div className="container mx-auto flex flex-col gap-5 px-2">
         {coordinates.map((group, index) => (
           <div key={index}>
             <p className="text-3xl font-bold text-center">{group[0]?.name}</p>
@@ -426,7 +472,7 @@ export default function Home() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </>
   );
 }

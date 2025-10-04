@@ -26,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import Head from "next/head";
+import PWA from "../components/PWA";
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -186,6 +187,7 @@ export default function Home() {
       setLayers(Object.entries(val).map(([key, value]) => value));
     });
     if (file) parseFile();
+
     return () => {
       eventBus.off("layers");
     };
@@ -480,7 +482,7 @@ export default function Home() {
               <h1 className="text-lg md:text-2xl font-bold">DXF Generator</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button className="hidden lg:block">Login</Button>
+              <PWA />
               <Button
                 variant="outline"
                 className="lg:hidden"

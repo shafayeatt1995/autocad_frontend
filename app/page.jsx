@@ -15,12 +15,22 @@ import Image from "next/image";
 import eventBus from "@/lib/eventBus";
 import Viewer from "@/components/viewer";
 import { setState, useStore } from "@/lib/state";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/ui/accordion";
+import { Separator } from "../components/ui/separator";
+import { Switch } from "../components/ui/switch";
 
 export default function Home() {
   const [file, setFile] = useState(null);
   const [coordinates, setCoordinates] = useState([]);
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [openAccordion, setOpenAccordion] = useState([]);
+  const [layers, setLayers] = useState([]);
   const layerMap = [
     { code: "BC", layerName: "CANAL", color: 130 },
     { code: "BD", layerName: "DITCH", color: 130 },
@@ -133,7 +143,14 @@ export default function Home() {
   const drawer = useStore((s) => s.drawer);
 
   useEffect(() => {
+    eventBus.on("layers", (val) => {
+      console.log(Object.entries(val).map(([key, value]) => value));
+      setLayers(Object.entries(val).map(([key, value]) => value));
+    });
     if (file) parseFile();
+    return () => {
+      eventBus.off("layers");
+    };
   }, [file]);
 
   const handleFile = (event) => {
@@ -348,7 +365,6 @@ export default function Home() {
       }
 
       const blob = await response.blob();
-      eventBus.emit("dxfFile", blob);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -382,6 +398,7 @@ export default function Home() {
 
       const blob = await response.blob();
       eventBus.emit("dxfFile", blob);
+      setOpenAccordion((prev) => [...new Set([...prev, "layers"])]);
     } catch (error) {
       console.error("Error submitting file:", error);
     } finally {
@@ -406,11 +423,19 @@ export default function Home() {
     }
   };
 
+  const updateCheck = (layer) => {
+    const updatedLayers = layers.map((l) =>
+      l.name === layer.name ? { ...l, visible: !l.visible } : l
+    );
+    setLayers(updatedLayers);
+    eventBus.emit("updateLayers", layer);
+  };
+
   return (
     <>
       <div className="border-b">
         <div className="container mx-auto px-2 lg:px-0">
-          <div className="h-14 flex justify-between items-center">
+          <div className="py-2 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10">
                 <Image
@@ -436,9 +461,9 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="flex w-full overflow-x-hidden h-[calc(100vh-48px)]">
+      <div className="flex w-full overflow-x-hidden h-[calc(100vh-57px)]">
         <div
-          className={`w-4/5 h-full bg-white md:w-80 fixed lg:relative top-14 lg:top-0 z-10 transition-all duration-300 ${
+          className={`w-4/5 h-full bg-white md:w-80 fixed lg:relative top-14 lg:top-0 z-10 transition-all duration-300 flex flex-col ${
             drawer ? "left-0" : "-left-full lg:left-0"
           }`}
         >
@@ -485,6 +510,68 @@ export default function Home() {
               </Button>
             </div>
           </form>
+          <Separator className="mt-2" />
+          <div className="flex-1 px-3 overflow-y-auto">
+            <Accordion
+              type="multiple"
+              collapsible
+              value={openAccordion}
+              onValueChange={setOpenAccordion}
+            >
+              <AccordionItem value="layers">
+                <AccordionTrigger className="text-xl text-center font-bold">
+                  Layers
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2 divide-y">
+                    {layers.map((layer, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-2 pb-1.5"
+                      >
+                        <div className="flex items-center gap-1">
+                          <div
+                            className="size-4 rounded-full shadow-xl border"
+                            style={{
+                              backgroundColor: `#${layer.color
+                                .toString(16)
+                                .padStart(6, "0")}`,
+                            }}
+                          ></div>
+                          <p className="font-medium flex items-center">
+                            {layer.name}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={layer.visible}
+                          onCheckedChange={() => updateCheck(layer)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="codeList">
+                <AccordionTrigger className="text-xl text-center font-bold">
+                  Code List
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2 divide-y">
+                    {layerMap.map((layer, i) => (
+                      <div key={i} className="flex items-center gap-2 pb-2">
+                        <p className="text-sm font-medium flex items-center justify-between w-full">
+                          <span className="mr-3">
+                            {layer.code} = {layer.layerName},
+                          </span>
+                          <span>Color({layer.color})</span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
         </div>
         <div className="flex-1 h-full">
           <Viewer />

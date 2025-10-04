@@ -25,6 +25,8 @@ export default function Viewer() {
   const rendererRef = useRef(null);
   const controlsRef = useRef(null);
   const dxfRef = useRef(null);
+  const [layers, setLayers] = useState([]);
+  const viewerRef = useRef(null);
 
   useEffect(() => {
     eventBus.on("processingLoading", (loading) => {
@@ -33,9 +35,50 @@ export default function Viewer() {
     eventBus.on("dxfFile", async (file) => {
       handleFileChange(file);
     });
+    eventBus.on("updateLayers", ({ name }) => {
+      console.log("updateLayers", name);
+
+      const viewer = viewerRef.current;
+      const dxf = dxfRef.current;
+      const renderer = rendererRef.current;
+      const camera = cameraRef.current;
+      const scene = sceneRef.current;
+
+      if (!viewer || !dxf || !renderer || !camera || !scene) return;
+
+      // Layer খুঁজে বের করো
+      const targetLayer = viewer.layers?.[name];
+      if (!targetLayer) {
+        console.warn(`Layer ${name} not found`);
+        return;
+      }
+
+      // আগের visibility মানটা উল্টে দাও (toggle)
+      const newVisibility = !targetLayer.visible;
+      targetLayer.visible = newVisibility;
+
+      // লেয়ারের entity গুলোকেও toggle করে দাও
+      if (targetLayer.entities) {
+        targetLayer.entities.forEach((entity) => {
+          entity.visible = newVisibility;
+        });
+      }
+
+      // React state আপডেট করো
+      setLayers((prev) =>
+        prev.map((layer) =>
+          layer.name === name ? { ...layer, visible: newVisibility } : layer
+        )
+      );
+
+      // ✅ Force scene update (important!)
+      renderer.render(scene, camera);
+    });
+
     return () => {
       eventBus.off("processingLoading");
       eventBus.off("dxfFile");
+      eventBus.off("updateLayers");
     };
   }, []);
 
@@ -142,17 +185,47 @@ export default function Viewer() {
       const viewer = new DXFViewer();
       viewer.subscribe("log", (msg) => console.log(msg));
       viewer.subscribe("error", (msg) => console.error(msg));
+
+      // Font load
       const dxf = await viewer.getFromFile(
         blob,
         "/fonts/helvetiker_regular.typeface.json"
       );
 
+      // ✅ Entities যোগ করো (ডকুমেন্টেশন অনুযায়ী)
+      const layerNames = Object.keys(viewer.layers);
+      layerNames.forEach((name) => (viewer.layers[name].entities = []));
+
+      dxf.traverse((m) => {
+        if (!m.userData || !m.userData.entity) return;
+        const name = m.userData.entity.layer;
+        if (viewer.layers[name]) viewer.layers[name].entities.push(m);
+      });
+
+      // পুরানো dxf remove করো
       if (dxfRef.current) sceneRef.current.remove(dxfRef.current);
+
       sceneRef.current.add(dxf);
       dxfRef.current = dxf;
+      viewerRef.current = viewer;
 
-      setLoading(false);
+      // ✅ Layers list সেট করো
+      setLayers(
+        layerNames.map((name) => ({
+          name,
+          color: viewer.layers[name].color,
+          visible: viewer.layers[name].visible,
+        }))
+      );
+
+      // ✅ EventBus দিয়ে অন্য কম্পোনেন্টে পাঠাও
+      eventBus.emit("layers", viewer.layers);
+
+      // ✅ Camera center
       centerCamera();
+
+      // ✅ Loading false
+      setLoading(false);
     } catch (error) {
       console.error(error);
     }
@@ -160,9 +233,15 @@ export default function Viewer() {
 
   return (
     <div className="relative size-full">
-      {loading && (
+      {(loading || !dxfRef.current) && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2Icon className="animate-spin text-white" size={100} />
+          {loading ? (
+            <Loader2Icon className="animate-spin text-white" size={100} />
+          ) : (
+            <p className="text-white text-center text-2xl font-semibold">
+              Select a file to see preview and Download
+            </p>
+          )}
         </div>
       )}
       <canvas ref={canvasRef} className="size-full"></canvas>

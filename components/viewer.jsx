@@ -35,42 +35,11 @@ export default function Viewer() {
     eventBus.on("dxfFile", async (file) => {
       handleFileChange(file);
     });
-    eventBus.on("updateLayers", ({ name }) => {
-      const viewer = viewerRef.current;
-      const dxf = dxfRef.current;
-      const renderer = rendererRef.current;
-      const camera = cameraRef.current;
-      const scene = sceneRef.current;
-
-      if (!viewer || !dxf || !renderer || !camera || !scene) return;
-
-      // Layer খুঁজে বের করো
-      const targetLayer = viewer.layers?.[name];
-      if (!targetLayer) {
-        console.warn(`Layer ${name} not found`);
-        return;
-      }
-
-      // আগের visibility মানটা উল্টে দাও (toggle)
-      const newVisibility = !targetLayer.visible;
-      targetLayer.visible = newVisibility;
-
-      // লেয়ারের entity গুলোকেও toggle করে দাও
-      if (targetLayer.entities) {
-        targetLayer.entities.forEach((entity) => {
-          entity.visible = newVisibility;
-        });
-      }
-
-      // React state আপডেট করো
-      setLayers((prev) =>
-        prev.map((layer) =>
-          layer.name === name ? { ...layer, visible: newVisibility } : layer
-        )
-      );
-
-      // ✅ Force scene update (important!)
-      renderer.render(scene, camera);
+    eventBus.on("updateLayers", (layer) => {
+      updateLayer(layer);
+    });
+    eventBus.on("updateAllLayers", (visible) => {
+      updateAllLayers(visible);
     });
 
     return () => {
@@ -223,6 +192,69 @@ export default function Viewer() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const updateLayer = ({ name }) => {
+    const viewer = viewerRef.current;
+    const dxf = dxfRef.current;
+    const renderer = rendererRef.current;
+    const camera = cameraRef.current;
+    const scene = sceneRef.current;
+
+    if (!viewer || !dxf || !renderer || !camera || !scene) return;
+
+    const targetLayer = viewer.layers?.[name];
+    if (!targetLayer) {
+      console.warn(`Layer ${name} not found`);
+      return;
+    }
+
+    const newVisibility = !targetLayer.visible;
+    targetLayer.visible = newVisibility;
+
+    if (targetLayer.entities) {
+      targetLayer.entities.forEach((entity) => {
+        entity.visible = newVisibility;
+      });
+    }
+
+    setLayers((prev) =>
+      prev.map((layer) =>
+        layer.name === name ? { ...layer, visible: newVisibility } : layer
+      )
+    );
+
+    renderer.render(scene, camera);
+  };
+
+  const updateAllLayers = (visible) => {
+    const viewer = viewerRef.current;
+    const dxf = dxfRef.current;
+    const renderer = rendererRef.current;
+    const camera = cameraRef.current;
+    const scene = sceneRef.current;
+
+    if (!viewer || !dxf || !renderer || !camera || !scene) return;
+
+    Object.keys(viewer.layers).forEach((name) => {
+      const targetLayer = viewer.layers?.[name];
+      if (!targetLayer) {
+        console.warn(`Layer ${name} not found`);
+        return;
+      }
+
+      targetLayer.visible = visible;
+
+      if (targetLayer.entities) {
+        targetLayer.entities.forEach((entity) => {
+          entity.visible = visible;
+        });
+      }
+    });
+
+    setLayers((prev) => prev.map((layer) => ({ ...layer, visible })));
+
+    renderer.render(scene, camera);
   };
 
   return (

@@ -5,6 +5,8 @@ import {
   CloudUploadIcon,
   Loader2Icon,
   SheetIcon,
+  SquareCheckIcon,
+  SquareIcon,
   TextAlignJustifyIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -20,9 +22,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../components/ui/accordion";
-import { Separator } from "../components/ui/separator";
-import { Switch } from "../components/ui/switch";
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import Head from "next/head";
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -32,30 +35,43 @@ export default function Home() {
   const [openAccordion, setOpenAccordion] = useState([]);
   const [layers, setLayers] = useState([]);
   const layerMap = [
+    {
+      code: "B",
+      layerName: "BUILDING",
+      color: 10,
+      lineClose: true,
+      showCenterText: true,
+      centerText: "STD",
+    },
     { code: "BC", layerName: "CANAL", color: 130 },
     { code: "BD", layerName: "DITCH", color: 130 },
     { code: "BM", layerName: "SURVEY", color: 7 },
     { code: "BR", layerName: "STRUCTURE", color: 30 },
     { code: "RB", layerName: "RIVER", color: 130 },
-    { code: "B", layerName: "BUILDING", color: 10 },
     { code: "BT", layerName: "ROAD", color: 8 },
-    { code: "BW", layerName: "BOUNDARY", color: 11 },
+    { code: "BW", layerName: "BOUNDARY", color: 11, centerText: "B.WALL" },
     { code: "BY", layerName: "BOUNDARY", color: 11 },
-    { code: "CC", layerName: "ROAD", color: 8 },
+    { code: "CC", layerName: "ROAD", color: 8, showCenterText: true },
     { code: "CH", layerName: "CHAINAGE", color: 7 },
     { code: "CL", layerName: "CENTER LINE", color: 162 },
-    { code: "CV", layerName: "CULVERT", color: 7 },
+    { code: "CV", layerName: "CULVERT", color: 7, showCenterText: true },
     { code: "CLB", layerName: "BUILDING", color: 1 },
     { code: "CLM", layerName: "COLUMN", color: 7 },
     { code: "CST", layerName: "FACTORY", color: 210 },
     { code: "CT", layerName: "CANAL", color: 130 },
     { code: "CV", layerName: "STRUCTURE", color: 30 },
     { code: "D", layerName: "DITCH", color: 130 },
-    { code: "DR", layerName: "DRAIN", color: 130 },
-    { code: "DT", layerName: "DITCH", color: 130 },
+    { code: "DR", layerName: "DRAIN", color: 130, showCenterText: true },
+    {
+      code: "DT",
+      layerName: "DITCH",
+      color: 130,
+      showCenterText: true,
+      lineClose: true,
+    },
     { code: "DTW", layerName: "TUBE WELL", color: 8 },
     { code: "RE", layerName: "EARTHEN ROAD", color: 80 },
-    { code: "F", layerName: "FENCE", color: 6 },
+    { code: "F", layerName: "FENCE", color: 6, showCenterText: true },
     { code: "FB", layerName: "FACTORY", color: 210 },
     { code: "FC", layerName: "FACTORY", color: 210 },
     { code: "FP", layerName: "FOOT PATH", color: 8 },
@@ -76,70 +92,93 @@ export default function Home() {
     { code: "JETTY", layerName: "JETTY", color: 7 },
     { code: "KM", layerName: "KM POST", color: 7 },
     { code: "LP", layerName: "LIGHT POST", color: 210 },
-    { code: "MB", layerName: "RELIGIOUS", color: 202 },
-    { code: "MH", layerName: "UTILITY", color: 210 },
+    {
+      code: "MB",
+      layerName: "RELIGIOUS",
+      color: 202,
+      lineClose: true,
+      centerText: "MOSQUE",
+    },
+    { code: "MH", layerName: "UTILITY", color: 210, lineClose: true },
     { code: "MSP", layerName: "RELIGIOUS", color: 202 },
     { code: "MTS", layerName: "RELIGIOUS", color: 202 },
     { code: "N", layerName: "TOPO", color: 196 },
     { code: "NFL", layerName: "NFL", color: 7 },
     { code: "NGO", layerName: "OFFICE", color: 7 },
-    { code: "P", layerName: "PAVEMENT", color: 10 },
-    { code: "PH", layerName: "PORCH", color: 7 },
+    { code: "P", layerName: "PAVEMENT", color: 10, showCenterText: true },
+    {
+      code: "PH",
+      layerName: "PORCH",
+      color: 7,
+      showCenterText: true,
+      lineClose: true,
+    },
     { code: "PIPE", layerName: "PIPE", color: 7 },
     { code: "PM", layerName: "PUMP", color: 7 },
     { code: "PP", layerName: "POWER POLE", color: 211 },
     { code: "PT", layerName: "PYLON TOWER", color: 210 },
-    { code: "RB", layerName: "RIVER BANK", color: 4 },
-    { code: "RE", layerName: "EARTHEN ROAD", color: 80 },
+    { code: "RB", layerName: "RIVER BANK", color: 4, showCenterText: true },
+    { code: "RE", layerName: "EARTHEN ROAD", color: 80, showCenterText: true },
     { code: "RG", layerName: "REGULATOR", color: 202 },
     { code: "RT", layerName: "RAIL", color: 7 },
-    { code: "S", layerName: "MARKET", color: 56 },
+    {
+      code: "S",
+      layerName: "MARKET",
+      color: 56,
+      lineClose: true,
+      centerText: "SHOP",
+    },
     { code: "SB", layerName: "SIGNAL POST", color: 7 },
     { code: "SBR", layerName: "STRUCTURE", color: 30 },
     { code: "SF", layerName: "FACTORY", color: 210 },
-    { code: "SS", layerName: "MARKET", color: 56 },
+    {
+      code: "SS",
+      layerName: "MARKET",
+      color: 56,
+      lineClose: true,
+      centerText: "SHOPS",
+    },
+    { code: "ST", layerName: "STATION", color: 7, lineClose: true },
+    { code: "RCC", layerName: "RCC", color: 3, showCenterText: true },
     { code: "SN", layerName: "STATION", color: 7 },
-    { code: "SP", layerName: "HOME", color: 70 },
-    { code: "STAIR", layerName: "STAIR", color: 7 },
+    {
+      code: "SP",
+      layerName: "HOME",
+      color: 70,
+      lineClose: true,
+      centerText: "SEMI PUCCA",
+    },
+    {
+      code: "STAIR",
+      layerName: "STAIR",
+      color: 7,
+      showCenterText: true,
+      lineClose: true,
+    },
     { code: "T", layerName: "TOE", color: 7 },
     { code: "TBM", layerName: "TBM", color: 7 },
     { code: "TL", layerName: "TOILET", color: 211 },
     { code: "TMPL", layerName: "RELIGIOUS", color: 8 },
     { code: "TP", layerName: "UTILITY TEL", color: 210 },
     { code: "TR", layerName: "TREE", color: 80 },
-    { code: "TS", layerName: "HOME", color: 3 },
+    {
+      code: "TS",
+      layerName: "HOME",
+      color: 3,
+      lineClose: true,
+      centerText: "TIN SHED",
+    },
     { code: "TW", layerName: "TUBE WELL", color: 8 },
-    { code: "UCB", layerName: "BLD", color: 8 },
+    { code: "UCB", layerName: "BLD", color: 8, lineClose: true },
+    { code: "UC", layerName: "UC", color: 17, lineClose: true },
     { code: "WL", layerName: "WING WALL", color: 7 },
   ];
-  const centerTextCode = [
-    "F",
-    "P",
-    "DR",
-    "RCC",
-    "CC",
-    "PH",
-    "STAIR",
-    "CV",
-    "RE",
-    "DT",
-    "RB",
-  ];
-  const lineCloseCode = [
-    "B",
-    "MB",
-    "MH",
-    "UCB",
-    "UC",
-    "S",
-    "SS",
-    "TS",
-    "SP",
-    "PH",
-    "STAIR",
-    "DT",
-    "ST",
-  ];
+  const centerTextCode = layerMap
+    .filter((layer) => layer.showCenterText)
+    .map((layer) => layer.code);
+  const lineCloseCode = layerMap
+    .filter((layer) => layer.lineClose)
+    .map((layer) => layer.code);
   const drawer = useStore((s) => s.drawer);
 
   useEffect(() => {
@@ -285,23 +324,9 @@ export default function Home() {
 
   // Step-4
   const centerText = (point) => {
-    if (point.layerCode === "B") {
-      return "STD";
-    } else if (point.layerCode === "MB") {
-      return "MOSQUE";
-    } else if (point.layerCode === "BW") {
-      return "B.WALL";
-    } else if (point.layerCode === "S") {
-      return "SHOP";
-    } else if (point.layerCode === "SS") {
-      return "SHOPS";
-    } else if (point.layerCode === "SP") {
-      return "SEMI PUCCA";
-    } else if (point.layerCode === "TS") {
-      return "TIN SHED";
-    }
+    const layer = layerMap.find((item) => item.code === point.layerCode);
 
-    return point.layerName;
+    return layer?.centerText || point.layerName;
   };
 
   const getColor = () => Math.floor(Math.random() * 200) + 1;
@@ -427,8 +452,18 @@ export default function Home() {
     eventBus.emit("updateLayers", layer);
   };
 
+  const updateAll = (visible) => {
+    const updatedLayers = layers.map((l) => ({ ...l, visible }));
+    setLayers(updatedLayers);
+    eventBus.emit("updateAllLayers", visible);
+  };
+
   return (
     <>
+      <Head>
+        <title>DXF Generator</title>
+        <meta name="description" content="DXF Generator Application" />
+      </Head>
       <div className="border-b">
         <div className="container mx-auto px-2 lg:px-0">
           <div className="py-2 flex justify-between items-center">
@@ -497,12 +532,13 @@ export default function Home() {
               </Button>
               <Button
                 type="button"
+                variant="outline"
                 disabled={loading}
                 className="flex-1"
                 onClick={() => downloadExcel()}
               >
                 <SheetIcon />
-                Download Excel
+                Download Format
               </Button>
             </div>
           </form>
@@ -518,6 +554,26 @@ export default function Home() {
                   Layers
                 </AccordionTrigger>
                 <AccordionContent>
+                  {layers && layers.length > 0 && (
+                    <div className="flex gap-2 mb-3">
+                      <Button
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => updateAll(true)}
+                      >
+                        <SquareCheckIcon />
+                        Select All
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => updateAll(false)}
+                      >
+                        <SquareIcon />
+                        Unselect All
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2 divide-y">
                     {layers.map((layer, i) => (
                       <div
@@ -548,17 +604,47 @@ export default function Home() {
               </AccordionItem>
               <AccordionItem value="codeList">
                 <AccordionTrigger className="text-xl text-center font-bold">
-                  Code List
+                  Code Preset
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="flex flex-col gap-2 divide-y">
                     {layerMap.map((layer, i) => (
-                      <div key={i} className="flex items-center gap-2 pb-2">
-                        <p className="text-sm font-medium flex items-center justify-between w-full">
-                          <span className="mr-3">
-                            {layer.code} = {layer.layerName},
+                      <div key={i} className="pb-2">
+                        <p className="text-sm">
+                          Layer Code:{" "}
+                          <span className="font-semibold">{layer.code}</span>,
+                        </p>
+                        <p className="text-sm">
+                          Layer Name:{" "}
+                          <span className="font-semibold">
+                            {layer.layerName}
                           </span>
-                          <span>Color({layer.color})</span>
+                          ,
+                        </p>
+                        <p className="text-sm">
+                          Layer Color:{" "}
+                          <span className="font-semibold">{layer.color}</span>,
+                        </p>
+                        <p className="text-sm">
+                          Show Layer Center Text:{" "}
+                          <span className="font-semibold">
+                            {layer.showCenterText ? "Yes" : "No"}
+                          </span>
+                          ,
+                        </p>
+                        <p className="text-sm">
+                          Center Custom Text:{" "}
+                          <span className="font-semibold">
+                            {layer.centerText || "N/A"}
+                          </span>
+                          ,
+                        </p>
+                        <p className="text-sm">
+                          Line Close:{" "}
+                          <span className="font-semibold">
+                            {layer.lineClose ? "Yes" : "No"}
+                          </span>
+                          ,
                         </p>
                       </div>
                     ))}

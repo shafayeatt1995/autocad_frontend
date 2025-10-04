@@ -144,7 +144,6 @@ export default function Home() {
 
   useEffect(() => {
     eventBus.on("layers", (val) => {
-      console.log(Object.entries(val).map(([key, value]) => value));
       setLayers(Object.entries(val).map(([key, value]) => value));
     });
     if (file) parseFile();
@@ -511,7 +510,6 @@ export default function Home() {
           <div className="flex-1 px-3 overflow-y-auto">
             <Accordion
               type="multiple"
-              collapsible
               value={openAccordion}
               onValueChange={setOpenAccordion}
             >

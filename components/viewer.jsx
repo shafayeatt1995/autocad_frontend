@@ -36,8 +36,6 @@ export default function Viewer() {
       handleFileChange(file);
     });
     eventBus.on("updateLayers", ({ name }) => {
-      console.log("updateLayers", name);
-
       const viewer = viewerRef.current;
       const dxf = dxfRef.current;
       const renderer = rendererRef.current;
@@ -183,10 +181,6 @@ export default function Viewer() {
       setLastFile(blob);
 
       const viewer = new DXFViewer();
-      viewer.subscribe("log", (msg) => console.log(msg));
-      viewer.subscribe("error", (msg) => console.error(msg));
-
-      // Font load
       const dxf = await viewer.getFromFile(
         blob,
         "/fonts/helvetiker_regular.typeface.json"

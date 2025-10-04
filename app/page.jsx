@@ -305,7 +305,7 @@ export default function Home() {
     return point.layerName;
   };
 
-  const getColor = () => Math.floor(Math.random() * 256) + 1;
+  const getColor = () => Math.floor(Math.random() * 200) + 1;
 
   const parseName = (name) => {
     try {

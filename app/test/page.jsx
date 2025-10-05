@@ -379,7 +379,7 @@ export default function Home() {
         return;
       }
       setLoading(true);
-      const response = await fetch(`${apiUrl}/generate-dxf`, {
+      const response = await fetch(`${apiUrl}/generate-dxf2`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(coordinates),
@@ -410,7 +410,7 @@ export default function Home() {
         alert("Please select a file first!");
         return;
       }
-      const response = await fetch(`${apiUrl}/preview-dxf`, {
+      const response = await fetch(`${apiUrl}/preview-dxf2`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(coords),

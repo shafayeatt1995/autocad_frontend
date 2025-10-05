@@ -1,8 +1,8 @@
-import { Quicksand } from "next/font/google";
+import { Red_Hat_Display } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
-const quicksand = Quicksand({
+const font = Red_Hat_Display({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
@@ -23,11 +23,7 @@ export default function RootLayout({ children }) {
         <Script src="/js/gana.js"></Script>
         <Script src="/js/gtag.js"></Script>
       </head>
-      <body
-        className={`${quicksand.className} antialiased`}
-        data-new-gr-c-s-check-loaded="14.1256.0"
-        data-gr-ext-installed=""
-      >
+      <body className={`${font.className} antialiased`}>
         {children}
         <noscript>
           <iframe

@@ -564,7 +564,7 @@ export default function Home() {
                         onClick={() => updateAll(true)}
                       >
                         <SquareCheckIcon />
-                        Select All
+                        Check All
                       </Button>
                       <Button
                         className="flex-1"
@@ -572,7 +572,7 @@ export default function Home() {
                         onClick={() => updateAll(false)}
                       >
                         <SquareIcon />
-                        Unselect All
+                        Uncheck All
                       </Button>
                     </div>
                   )}

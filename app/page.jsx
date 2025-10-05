@@ -478,10 +478,19 @@ export default function Home() {
                   height={40}
                 />
               </div>
-              <h1 className="text-lg md:text-2xl font-bold">DXF Generator</h1>
+              <h1 className="text-lg md:text-2xl font-bold hidden md:inline-block">
+                DXF Generator
+              </h1>
             </div>
             <div className="flex items-center gap-2">
-              <p className="font-black">V 1.0</p>
+              <a
+                href="https://wa.me/8801728293635"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 font-bold border rounded-lg px-2.5 py-1"
+              >
+                <Image src="/wp.svg" width={30} height={30} /> Chat US
+              </a>
               <Button
                 variant="outline"
                 className="lg:hidden"

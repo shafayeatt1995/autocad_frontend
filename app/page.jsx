@@ -489,7 +489,8 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 font-bold border rounded-lg px-2.5 py-1"
               >
-                <Image src="/wp.svg" width={30} height={30} /> Chat US
+                <Image src="/wp.svg" width={30} height={30} alt="Contact us" />
+                Chat US
               </a>
               <Button
                 variant="outline"

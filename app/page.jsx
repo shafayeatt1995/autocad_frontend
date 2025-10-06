@@ -244,7 +244,6 @@ export default function Home() {
     eventBus.emit("processingLoading", true);
 
     const group = lines
-      .slice(1)
       .map((line) => {
         let [sn, xStr, yStr, zStr, name] = line.split(",").map((v) => v.trim());
         const x = parseFloat(xStr);

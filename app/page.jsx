@@ -3,6 +3,7 @@
 import {
   ArrowDownToLineIcon,
   CloudUploadIcon,
+  CopyIcon,
   Loader2Icon,
   SheetIcon,
   SquareCheckIcon,
@@ -26,6 +27,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import Head from "next/head";
+import { toast } from "sonner";
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -180,6 +182,8 @@ export default function Home() {
     .filter((layer) => layer.lineClose)
     .map((layer) => layer.code);
   const drawer = useStore((s) => s.drawer);
+  const genSN = `=IF(LEN(INT(A1))>6, LEFT(INT(A1), LEN(INT(A1))-6), 0)`;
+  const genNumber = `=RIGHT(INT(A1),6) + MOD(A1,1)`;
 
   useEffect(() => {
     eventBus.on("layers", (val) => {
@@ -458,6 +462,15 @@ export default function Home() {
     eventBus.emit("updateAllLayers", visible);
   };
 
+  const copy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard");
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -658,6 +671,39 @@ export default function Home() {
                         </p>
                       </div>
                     ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="excelCode">
+                <AccordionTrigger className="text-xl text-center font-bold">
+                  Excel Formula
+                </AccordionTrigger>
+                <AccordionContent className="space-y-2">
+                  <div className="border rounded-lg p-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-semibold">Generate Serial</p>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copy(genSN)}
+                      >
+                        <CopyIcon />
+                      </Button>
+                    </div>
+                    <p className="text-xs mt-1">{genSN}</p>
+                  </div>
+                  <div className="border rounded-lg p-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-semibold">Generate North</p>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copy(genNumber)}
+                      >
+                        <CopyIcon />
+                      </Button>
+                    </div>
+                    <p className="text-xs mt-1">{genNumber}</p>
                   </div>
                 </AccordionContent>
               </AccordionItem>

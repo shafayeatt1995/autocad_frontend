@@ -1,12 +1,12 @@
 import { Red_Hat_Display } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+import { Toaster } from "@/components/ui/sonner";
 
 const font = Red_Hat_Display({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
-
 export const metadata = {
   title: "DXF Generator",
   description: "DXF Generator",
@@ -25,6 +25,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${font.className} antialiased`}>
         {children}
+        <Toaster />
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-ND7W9QSN"
